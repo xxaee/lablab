@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open When — for my love</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #f7f4ef;
+    --surface: #f0ebe2;
+    --card: #fdfcfa;
+    --brown: #3d2c1e;
+    --mid: #7a5c45;
+    --muted: #a8907a;
+    --accent: #c4956a;
+    --line: rgba(180,155,130,0.25);
+    --envelope: #e8ddd0;
+    --envelope-dark: #d4c4b0;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--brown);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(196,149,106,0.08) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .hero-tag {
+    font-size: 0.65rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 300;
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: up 0.9s ease 0.2s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 10vw, 6.5rem);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    opacity: 0;
+    animation: up 1s ease 0.4s forwards;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    margin-top: 2rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    opacity: 0;
+    animation: up 0.9s ease 0.7s forwards;
+    max-width: 320px;
+    line-height: 1.8;
+  }
+
+  .hero-divider {
+    width: 1px;
+    height: 60px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    margin: 3rem auto 0;
+    opacity: 0;
+    animation: up 0.9s ease 1s forwards;
+  }
+
+  /* GRID */
+  .grid-section {
+    padding: clamp(4rem, 8vw, 7rem) clamp(1.2rem, 5vw, 4rem);
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .grid-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 300;
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.2rem;
+  }
+
+  /* MOBILE */
+  @media (max-width: 480px) {
+    .hero { padding: 4rem 1.5rem; }
+    .grid-section { padding: 3rem 1rem; }
+    .cards-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    .env-card { height: 200px; }
+    .back-text { font-size: 0.82rem; line-height: 1.7; }
+    .env-back { padding: 1.2rem; }
+    .closing { padding: 4rem 1.5rem; }
+  }
+
+  /* TABLET */
+  @media (min-width: 481px) and (max-width: 900px) {
+    .cards-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    .env-card { height: 210px; }
+    .grid-section { padding: 4rem 2rem; }
+  }
+
+  /* ENVELOPE CARD */
+  .env-card {
+    cursor: pointer;
+    perspective: 1000px;
+    height: 220px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .env-card.visible { opacity: 1; transform: translateY(0); }
+
+  .env-inner {
+    position: relative;
+    width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .env-card.open .env-inner { transform: rotateY(180deg); }
+
+  .env-front, .env-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+  }
+
+  /* FRONT — envelope look */
+  .env-front {
+    background: var(--envelope);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    overflow: hidden;
+  }
+
+  .env-front::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 50%;
+    background: var(--envelope-dark);
+    clip-path: polygon(0 0, 100% 0, 50% 70%);
+  }
+
+  .env-front::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 55%;
+    background: var(--envelope);
+    clip-path: polygon(0 100%, 50% 30%, 100% 100%);
+    border-top: 1px solid rgba(180,155,130,0.3);
+  }
+
+  .env-seal {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; z-index: 2;
+    box-shadow: 0 2px 8px rgba(196,149,106,0.3);
+  }
+
+  .env-seal svg { width: 16px; height: 16px; fill: white; }
+
+  .env-when {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--mid);
+    text-align: center;
+    position: relative; z-index: 2;
+    padding: 0 1.5rem;
+    line-height: 1.5;
+  }
+
+  .env-hint {
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    position: relative; z-index: 2;
+  }
+
+  /* BACK — letter content */
+  .env-back {
+    background: var(--card);
+    transform: rotateY(180deg);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+
+  .back-when {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 300;
+    margin-bottom: 0.75rem;
+  }
+
+  .back-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--brown);
+    font-weight: 400;
+    flex: 1;
+  }
+
+  .back-close {
+    margin-top: 1rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: right;
+    cursor: pointer;
+  }
+
+  .back-close:hover { color: var(--accent); }
+
+  /* CLOSING */
+  .closing {
+    text-align: center;
+    padding: clamp(5rem, 10vw, 9rem) 2rem;
+    background: var(--surface);
+  }
+
+  .closing-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 400;
+    line-height: 1.3;
+    margin-bottom: 1.5rem;
+  }
+
+  .closing-title em { font-style: italic; color: var(--accent); }
+
+  .closing-sub {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 200;
+  }
+
+  /* ANIMATIONS */
+  @keyframes up {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  body.dark {
+  --bg: #121212;
+  --surface: #1a1a1a;
+  --card: #222222;
+  --brown: #f5f5f5;
+  --mid: #cfcfcf;
+  --muted: #a0a0a0;
+  --accent: #c4956a;
+  --line: rgba(255,255,255,0.12);
+  --envelope: #2a2a2a;
+  --envelope-dark: #202020;
+}
+.toggle-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 8px 12px;
+  font-size: 0.7rem;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--brown);
+  cursor: pointer;
+  border-radius: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: 0.3s;
+}
+
+.toggle-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.9s ease;
+}
+
+.reveal.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero reveal">
+  <button class="toggle-btn" onclick="toggleDarkMode()" id="themeBtn">
+  🌙 Dark Mode
+  </button>
+  <p class="hero-tag">A gift for you · 6 months</p>
+  <h1 class="hero-title">Open<br><em>When...</em></h1>
+  <p class="hero-sub">Open the letter that matches what you're feeling right now.</p>
+  <div class="hero-divider"></div>
+</div>
+
+<!-- LETTERS GRID -->
+<div class="grid-section reveal">
+  <p class="grid-label">Tap to open</p>
+  <div class="cards-grid" id="grid"></div>
+</div>
+
+<!-- CLOSING -->
+<div class="closing reveal">
+  <p class="closing-title">Mahal kita,<br><em>kahit kailan.</em></p>
+  <p class="closing-sub">Happy Monthsary, love 🤍</p>
+</div>
+
+<script>
+const letters = [
+  {
+    when: "...you miss me",
+    text: "distance may separate us, but i’m always here for you. if you miss me, just call me and i'll always make time for you, my love love. nakakamiss talaga ako, ako na to eh hahahaha"
+  },
+  {
+    when: "...you're happy",
+    text: " everything feels a little better for me too. i love seeing you smile, laughing, feel kilig, just being you. stay with that feeling, because your happiness matters to me a lot. i love you always, my pretty baby!"
+  },
+  {
+    when: "...you're sad",
+    text: "don’t pressure yourself to explain or fix everything. just take your time. feel it, breathe through it, and let it pass on its own. i’ll be here with you, no rush, no pressure. i love you very much, my baby!"
+  },
+  {
+    when: "...you mad at me",
+    text: "i understand there are moments I might upset or hurt you, even if I didn’t mean to. whatever it is, i don’t want you to keep it inside—tell me how you feel. then let’s talk when we’re both ready, and work it out together. i believe in us, and i’ll always choose to fix things with you."
+  },
+  {
+    when: "...you tired",
+    text: "don’t force yourself to keep going. rest when you need to, and don’t feel guilty about it. take a breath, slow down, and give yourself time to recharge. i love you always!"
+  },
+  {
+    when: "...we're fighting",
+    text: "if misunderstandings happen, let’s not let pride or emotions take over. we can always talk and fix things together. i’m not going anywhere, and i still want us to be okay. i love you always!"
+  },
+  {
+    when: "...you're having a bad day",
+    text: "just remember it’s okay to not feel okay. you don’t have to pretend everything’s fine. bad days come and go, but you’re still important through all of it. i’m always here for you, no matter what. i love you always!"
+  },
+  {
+    when: "...you need motivation",
+    text: "on the days you doubt yourself, remember you’ve made it through so much already. take your time, one step at a time. i know you can handle whatever comes your way. you’re stronger than you think, and you’ll figure things out, just like you always do. just keep in mind that i'm very proud of you, my baby love"
+  },
+  {
+    when: "...you need a reminder you're loved",
+    text: "in case you need a reminder today, i love you. that hasn’t changed and won’t change."
+  },
+  {
+    when: "...it's our monthsary",
+    text: "I love you—not for any reason or anything you do, but simply because you are who you are. every month we celebrate reminds me that we keep choosing each other, over and over again. and i promise, that choice will always stay the same. happy monthsary, my love."
+  }
+];
+
+const grid = document.getElementById('grid');
+
+letters.forEach((l, i) => {
+  const card = document.createElement('div');
+  card.className = 'env-card';
+  card.innerHTML = `
+    <div class="env-inner">
+      <div class="env-front">
+        <div class="env-seal">
+          <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+        <p class="env-when">Open when<br>${l.when.replace('...', '')}</p>
+        <span class="env-hint">tap to open</span>
+      </div>
+      <div class="env-back">
+        <div>
+          <p class="back-when">Open when${l.when}</p>
+          <p class="back-text">${l.text}</p>
+        </div>
+        <p class="back-close" onclick="event.stopPropagation(); this.closest('.env-card').classList.remove('open')">↩ tap to close</p>
+      </div>
+    </div>
+  `;
+  card.addEventListener('click', () => card.classList.toggle('open'));
+  grid.appendChild(card);
+});
+
+// Scroll reveal
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach((e, idx) => {
+    if (e.isIntersecting) {
+      const cards = [...grid.querySelectorAll('.env-card:not(.visible)')];
+      cards.forEach((c, i) => setTimeout(() => c.classList.add('visible'), i * 80));
+      obs.disconnect();
+    }
+  });
+}, { threshold: 0.1 });
+obs.observe(grid);
+
+function toggleDarkMode() {
+  document.body.classList.toggle("dark");
+
+  const btn = document.getElementById("themeBtn");
+
+  if (document.body.classList.contains("dark")) {
+    localStorage.setItem("theme", "dark");
+    btn.innerHTML = "☀️ Light Mode";
+  } else {
+    localStorage.setItem("theme", "light");
+    btn.innerHTML = "🌙 Dark Mode";
+  }
+}
+
+// load saved theme
+window.addEventListener("load", () => {
+  const btn = document.getElementById("themeBtn");
+
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+    btn.innerHTML = "☀️ Light Mode";
+  } else {
+    btn.innerHTML = "🌙 Dark Mode";
+  }
+});
+
+const reveals = document.querySelectorAll('.reveal');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('show');
+    }
+  });
+}, {
+  threshold: 0.15
+});
+
+reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
